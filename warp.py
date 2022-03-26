@@ -7,8 +7,6 @@ NUM_PIXELS = 16
 
 # Assume middle is right in the middle or in the bottom half
 MIDDLE = 6 # location of core
-# BOTTOM_SHORTER = (NUM_PIXELS / 2) >= MIDDLE
-BOTTOM_SHORTER = True
 
 
 def get_pixels() -> List[Tuple[int,int,int]]:
@@ -26,48 +24,52 @@ def print_pixels(pixels: List[Tuple[int,int,int]]) -> None:
             print(str(pixels[i]))
     print("====BOTTOM====")
 
+
 def warp_pixels() -> None:
     pixels = get_pixels()
-    last_top = NUM_PIXELS
-    last_bottom = -1
-    diff = NUM_PIXELS - MIDDLE + 1
-    # print(diff)
-    # print(NUM_PIXELS - MIDDLE + 1)
-    # sys.exit(0)
+
+    start_top = NUM_PIXELS - 1
+    start_bottom = -1 * (NUM_PIXELS - MIDDLE - MIDDLE - 1)
+
+    new_top = start_top
+    new_bottom = start_bottom
+
+    last_bottom = new_bottom
+    last_top = new_top
     while True:
-        new_bottom = last_bottom + 1
-        new_top = last_top - 1
-
-        # Resetting
-        # assumes core at middle or lower
-        if new_bottom > MIDDLE:
-            new_bottom = 0
-        if new_top <= MIDDLE:
-            new_top = NUM_PIXELS - 1
-
-        # Colors
-        # pixels = get_pixels()
-        pixels[new_top] = (0,0,255)
-        pixels[new_bottom] = (0,0,255)
         if last_bottom > -1:
             pixels[last_bottom] = (0,0,40)
-        if last_top < NUM_PIXELS:
-            pixels[last_top] = (0,0,40)
+        if new_bottom > -1:
+            pixels[new_bottom] = (0,0,255)
+        
+        pixels[last_top] = (0,0,40)
+        pixels[new_top] = (0,0,255)
 
-        # View
         subprocess.call("clear")
         print_pixels(pixels)
+        print((last_top, last_bottom))
+        print((new_top, new_bottom))
 
-        try:
-            pixels[new_top] = (0,0,0)
-            pixels[new_bottom] = (0,0,0)
-            pixels[last_top] = (0,0,0)
+        pixels[last_top] = (0,0,0)
+        pixels[new_top] = (0,0,0)
+        if last_bottom > -1:
             pixels[last_bottom] = (0,0,0)
-        except IndexError:
-            pass
-
+        if new_bottom > -1:
+            pixels[new_bottom] = (0,0,0)
+        
         last_top = new_top
         last_bottom = new_bottom
+
+        new_top -= 1
+        new_bottom += 1
+
+        if new_top < MIDDLE:
+            print("reset top")
+            new_top = start_top
+        if new_bottom > MIDDLE:
+            print("reset bottom")
+            new_bottom = start_bottom
+
         time.sleep(1)
 
 
