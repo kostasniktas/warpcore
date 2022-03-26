@@ -12,8 +12,20 @@ pixels.brightness = 0.5
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
+button = digitalio.DigitalInOut(board.GP17)
+button.switch_to_input(pull=digitalio.Pull.DOWN)
+
 
 # TODO: Let the bottom one be on softer until more
+
+ALL_COLORS = [
+    ((0,0,255), (0,0,40)),
+    ((255,0,0), (40,0,0))
+]
+BRIGHT = 0
+DIM = 1
+COLOR_INDEX = 0
+COLOR = ALL_COLORS[COLOR_INDEX]
 
 ENGINE_CORE = 7
 
@@ -30,16 +42,23 @@ while True:
     while reset_pixels:
         pixels[reset_pixels.pop()] = (0,0,0)
 
+    if button.value:
+        COLOR_INDEX = (COLOR_INDEX + 1) % len(ALL_COLORS)
+        COLOR = ALL_COLORS[COLOR_INDEX]
+    else:
+        pixels[4] = (0,0,0)
+
     if last_bottom > -1:
-        pixels[last_bottom] = (0,0,40)
+        pixels[last_bottom] = COLOR[DIM]
         reset_pixels.append(last_bottom)
     if new_bottom > -1:
-        pixels[new_bottom] = (0,0,255)
+        pixels[new_bottom] = COLOR[BRIGHT]
         reset_pixels.append(new_bottom)
-    pixels[last_top] = (0,0,40)
-    pixels[new_top] = (0,0,255)
+    pixels[last_top] = COLOR[DIM]
+    pixels[new_top] = COLOR[BRIGHT]
     reset_pixels.append(last_top)
     reset_pixels.append(new_top)
+
 
     pixels.show()
 
