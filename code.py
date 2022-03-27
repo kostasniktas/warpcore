@@ -5,6 +5,11 @@ import digitalio
 
 # Update this to match the number of NeoPixel LEDs connected to your board.
 NUM_PIXELS = 16
+ENGINE_CORE = 6
+
+COLOR_OFF = (0,0,0)
+
+
 
 pixels = neopixel.NeoPixel(board.GP16, NUM_PIXELS)
 pixels.brightness = 0.5
@@ -15,18 +20,19 @@ led.direction = digitalio.Direction.OUTPUT
 button = digitalio.DigitalInOut(board.GP17)
 button.switch_to_input(pull=digitalio.Pull.DOWN)
 
-ALL_COLORS = [
-    ((0,0,255), (0,0,40)),
-    ((255,0,0), (40,0,0))
-]
 
-BRIGHT = 0
-DIM = 1
-COLOR_INDEX = 0
-COLOR = ALL_COLORS[COLOR_INDEX]
 
-ENGINE_CORE = 6
-
+def do_nothing_gen():
+    def do_nothing():
+        pixels[0] = (50,0,0)
+        pixels[0] = COLOR_OFF
+        while True:
+            if button.value:
+                pixels[2] = COLOR_OFF
+                return
+            pixels[2] = (0,10,0)
+            time.sleep(0.25)
+    return lambda: do_nothing()
 
 def warp_loop_gen(dim, bright):
     def warp_loop(dim, bright):
@@ -42,7 +48,7 @@ def warp_loop_gen(dim, bright):
         reset_pixels = []
         while True:
             while reset_pixels:
-                pixels[reset_pixels.pop()] = (0,0,0)
+                pixels[reset_pixels.pop()] = COLOR_OFF
 
             if button.value:
                 return
@@ -78,11 +84,16 @@ def warp_loop_gen(dim, bright):
             time.sleep(0.25)
     return lambda: warp_loop(dim, bright)
 
-effects = [
-    warp_loop_gen(ALL_COLORS[0][DIM], ALL_COLORS[0][BRIGHT]),
-    warp_loop_gen(ALL_COLORS[1][DIM], ALL_COLORS[1][BRIGHT])
-]
+EFFECTS = [
+    warp_loop_gen((0,0,40), (0,0,255)),
+    warp_loop_gen((40,0,0), (255,0,0)),
 
+    do_nothing_gen()
+]
+EFFECT_SIZE = len(EFFECTS)
+
+effect_index = 0
 while True:
-    effects[COLOR_INDEX]()
-    COLOR_INDEX = (COLOR_INDEX + 1) % len(ALL_COLORS)
+    EFFECTS[effect_index]()
+    effect_index = (effect_index + 1) % EFFECT_SIZE
+    time.sleep(1)
