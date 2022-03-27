@@ -16,7 +16,6 @@ button = digitalio.DigitalInOut(board.GP17)
 button.switch_to_input(pull=digitalio.Pull.DOWN)
 
 
-# TODO: Let the bottom one be on softer until more
 
 ALL_COLORS = [
     ((0,0,255), (0,0,40)),
@@ -27,10 +26,11 @@ DIM = 1
 COLOR_INDEX = 0
 COLOR = ALL_COLORS[COLOR_INDEX]
 
-ENGINE_CORE = 7
+ENGINE_CORE = 6
 
 START_TOP = NUM_PIXELS - 1
 START_BOTTOM = -1 * (NUM_PIXELS - ENGINE_CORE - ENGINE_CORE - 1)
+BELOW_STEPS = abs(START_BOTTOM) + 2
 
 new_top = START_TOP
 new_bottom = START_BOTTOM
@@ -51,6 +51,9 @@ while True:
     if last_bottom > -1:
         pixels[last_bottom] = COLOR[DIM]
         reset_pixels.append(last_bottom)
+    if new_bottom < 0:
+        adjust = (BELOW_STEPS - abs(new_bottom)) / BELOW_STEPS
+        pixels[0] = (COLOR[BRIGHT][0] * adjust, COLOR[BRIGHT][1] * adjust, COLOR[BRIGHT][2] * adjust)
     if new_bottom > -1:
         pixels[new_bottom] = COLOR[BRIGHT]
         reset_pixels.append(new_bottom)
@@ -62,12 +65,6 @@ while True:
 
     pixels.show()
 
-    # if last_bottom > -1:
-    #     pixels[last_bottom] = (0,0,0)
-    # if new_bottom > -1:
-    #     pixels[new_bottom] = (0,0,0)
-    # pixels[last_top] = (0,0,0)
-    # pixels[new_top] = (0,0,0)
 
     last_top = new_top
     last_bottom = new_bottom
