@@ -5,6 +5,8 @@ import digitalio
 import neopixel
 from rainbowio import colorwheel
 from adafruit_led_animation.animation.comet import Comet
+from adafruit_led_animation.animation.rainbowcomet import RainbowComet
+
 
 
 # Update this to match the number of NeoPixel LEDs connected to your board.
@@ -104,14 +106,13 @@ def warp_loop_gen_enterprise_d(dim, bright):
 #
 def rainbow_gen(speed):
     def rainbow(speed):
-        for j in range(255):
+        rainbow_effect = RainbowComet(pixels, speed=speed, reverse=True)
+        while True:
             if button.value:
+                pixels.fill(COLOR_OFF)
+                pixels.show()
                 return
-            for i in range(NUM_PIXELS):
-                pixel_index = (i * 256 // NUM_PIXELS) + j
-                pixels[i] = colorwheel(pixel_index & 255)
-            pixels.show()
-            time.sleep(speed)
+            rainbow_effect.animate()
     return lambda: rainbow(speed)
 
 
@@ -133,6 +134,7 @@ EFFECTS = [
     warp_loop_gen_enterprise_d((0,0,40), (0,0,255)),
     warp_loop_gen_enterprise_d((40,0,40), (200,0,200)),
     bouncing_comet_gen((100,0,100), 0.25),
+    rainbow_gen(0.25),
 
 
     do_nothing_gen()
