@@ -1,7 +1,11 @@
 import time
+
 import board
-import neopixel
 import digitalio
+import neopixel
+from rainbowio import colorwheel
+from adafruit_led_animation.animation.comet import Comet
+
 
 # Update this to match the number of NeoPixel LEDs connected to your board.
 NUM_PIXELS = 16
@@ -9,6 +13,7 @@ ENGINE_CORE = 6
 
 COLOR_OFF = (0,0,0)
 
+# TODO: Figure out how to get vscode to see afafruit libraries beyond neopixel
 
 
 pixels = neopixel.NeoPixel(board.GP16, NUM_PIXELS)
@@ -21,7 +26,11 @@ button = digitalio.DigitalInOut(board.GP17)
 button.switch_to_input(pull=digitalio.Pull.DOWN)
 
 
+DEBUG = True
 
+#
+# Do nothing
+#
 def do_nothing_gen():
     def do_nothing():
         pixels[0] = (50,0,0)
@@ -30,11 +39,15 @@ def do_nothing_gen():
             if button.value:
                 pixels[2] = COLOR_OFF
                 return
-            pixels[2] = (0,10,0)
+            if DEBUG:
+                pixels[2] = (0,10,0)
             time.sleep(0.25)
     return lambda: do_nothing()
 
-def warp_loop_gen(dim, bright):
+#
+# Simulate Enterprise D engine core pulses
+#
+def warp_loop_gen_enterprise_d(dim, bright):
     def warp_loop(dim, bright):
         START_TOP = NUM_PIXELS - 1
         START_BOTTOM = -1 * (NUM_PIXELS - ENGINE_CORE - ENGINE_CORE - 1)
@@ -84,9 +97,43 @@ def warp_loop_gen(dim, bright):
             time.sleep(0.25)
     return lambda: warp_loop(dim, bright)
 
+
+#
+# Rainbow effect
+# PROBLEMATIC (UNCLEAR IF CODE OR SOLDER JOB. POR QUE NO LOS DOS?)
+#
+def rainbow_gen(speed):
+    def rainbow(speed):
+        for j in range(255):
+            if button.value:
+                return
+            for i in range(NUM_PIXELS):
+                pixel_index = (i * 256 // NUM_PIXELS) + j
+                pixels[i] = colorwheel(pixel_index & 255)
+            pixels.show()
+            time.sleep(speed)
+    return lambda: rainbow(speed)
+
+
+#
+# Go Down and Go Up
+#
+def bouncing_comet_gen(colors, speed):
+    def bouncing_commet(colors, speed):
+        commet = Comet(pixels, speed, colors, bounce=True)
+        while True:
+            if button.value:
+                pixels.fill(COLOR_OFF)
+                pixels.show()
+                return
+            commet.animate()
+    return lambda : bouncing_commet(colors, speed)
+
 EFFECTS = [
-    warp_loop_gen((0,0,40), (0,0,255)),
-    warp_loop_gen((40,0,0), (255,0,0)),
+    warp_loop_gen_enterprise_d((0,0,40), (0,0,255)),
+    warp_loop_gen_enterprise_d((40,0,40), (200,0,200)),
+    bouncing_comet_gen((100,0,100), 0.25),
+
 
     do_nothing_gen()
 ]
