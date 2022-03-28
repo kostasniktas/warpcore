@@ -102,7 +102,6 @@ def warp_loop_gen_enterprise_d(dim, bright):
 
 #
 # Rainbow effect
-# PROBLEMATIC (UNCLEAR IF CODE OR SOLDER JOB. POR QUE NO LOS DOS?)
 #
 def rainbow_gen(speed):
     def rainbow(speed):
