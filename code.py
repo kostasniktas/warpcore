@@ -3,13 +3,9 @@ import time
 import board
 import digitalio
 import neopixel
-from rainbowio import colorwheel
 from adafruit_led_animation.animation.comet import Comet
 from adafruit_led_animation.animation.rainbowcomet import RainbowComet
 
-
-
-# Update this to match the number of NeoPixel LEDs connected to your board.
 NUM_PIXELS = 16
 ENGINE_CORE = 6
 
@@ -24,11 +20,13 @@ pixels.brightness = 0.5
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
-button = digitalio.DigitalInOut(board.GP17)
-button.switch_to_input(pull=digitalio.Pull.DOWN)
+button_0 = digitalio.DigitalInOut(board.GP17)
+button_0.switch_to_input(pull=digitalio.Pull.DOWN)
+BUTTON_0 = 0
 
-button2 = digitalio.DigitalInOut(board.GP20)
-button2.switch_to_input(pull=digitalio.Pull.DOWN)
+button_1 = digitalio.DigitalInOut(board.GP20)
+button_1.switch_to_input(pull=digitalio.Pull.DOWN)
+BUTTON_1 = 1
 
 DEBUG = True
 
@@ -36,26 +34,26 @@ DEBUG = True
 # Do nothing
 #
 def do_nothing_gen():
-    def do_nothing():
+    def do_nothing(speed):
         pixels[0] = (50,0,0)
         pixels[0] = COLOR_OFF
         while True:
-            if button.value:
+            if button_0.value:
                 pixels[2] = COLOR_OFF
-                return 0
-            if button2.value:
+                return BUTTON_0
+            if button_1.value:
                 pixels[2] = COLOR_OFF
-                return 1
+                return BUTTON_1
             if DEBUG:
                 pixels[2] = (0,10,0)
-            time.sleep(0.25)
-    return lambda: do_nothing()
+            time.sleep(speed)
+    return do_nothing
 
 #
 # Simulate Enterprise D engine core pulses
 #
 def warp_loop_gen_enterprise_d(dim, bright):
-    def warp_loop(dim, bright):
+    def warp_loop(speed):
         START_TOP = NUM_PIXELS - 1
         START_BOTTOM = -1 * (NUM_PIXELS - ENGINE_CORE - ENGINE_CORE - 1)
         BELOW_STEPS = abs(START_BOTTOM) + 2
@@ -70,10 +68,10 @@ def warp_loop_gen_enterprise_d(dim, bright):
             while reset_pixels:
                 pixels[reset_pixels.pop()] = COLOR_OFF
 
-            if button.value:
-                return 0
-            if button2.value:
-                return 1
+            if button_0.value:
+                return BUTTON_0
+            if button_1.value:
+                return BUTTON_1
 
             if last_bottom > -1:
                 pixels[last_bottom] = dim
@@ -103,63 +101,68 @@ def warp_loop_gen_enterprise_d(dim, bright):
             if new_bottom > ENGINE_CORE:
                 new_bottom = START_BOTTOM
 
-            time.sleep(0.25)
-    return lambda: warp_loop(dim, bright)
+            time.sleep(speed)
+    return warp_loop
 
 
 #
 # Rainbow effect
 #
-def rainbow_gen(speed):
+def rainbow_gen():
     def rainbow(speed):
         rainbow_effect = RainbowComet(pixels, speed=speed, reverse=True)
         while True:
-            if button.value:
+            if button_0.value:
                 pixels.fill(COLOR_OFF)
                 pixels.show()
-                return 0
-            if button2.value:
+                return BUTTON_0
+            if button_1.value:
                 pixels.fill(COLOR_OFF)
                 pixels.show()
-                return 1
+                return BUTTON_1
             rainbow_effect.animate()
-    return lambda: rainbow(speed)
+    return rainbow
 
 
 #
 # Go Down and Go Up
 #
-def bouncing_comet_gen(colors, speed):
-    def bouncing_commet(colors, speed):
+def bouncing_comet_gen(colors):
+    def bouncing_commet(speed):
         commet = Comet(pixels, speed, colors, bounce=True)
         while True:
-            if button.value:
+            if button_0.value:
                 pixels.fill(COLOR_OFF)
                 pixels.show()
-                return 0
-            if button2.value:
+                return BUTTON_0
+            if button_1.value:
                 pixels.fill(COLOR_OFF)
                 pixels.show()
-                return 1
+                return BUTTON_1
             commet.animate()
-    return lambda : bouncing_commet(colors, speed)
+    return bouncing_commet
 
 EFFECTS = [
     warp_loop_gen_enterprise_d((0,0,40), (0,0,255)),
     warp_loop_gen_enterprise_d((40,0,40), (200,0,200)),
-    bouncing_comet_gen((100,0,100), 0.25),
-    rainbow_gen(0.25),
+    bouncing_comet_gen((100,0,100)),
+    rainbow_gen(),
 
 
     do_nothing_gen()
 ]
 EFFECT_SIZE = len(EFFECTS)
 
+SPEEDS = [0.25, 0.5, 1, 0.01, 0.05, 0.1]
+SPEEDS_SIZE = len(SPEEDS)
+
 effect_index = 0
+speed_index = 0
 while True:
-    ret = EFFECTS[effect_index]()
-    if ret == 0:
+    ret = EFFECTS[effect_index](SPEEDS[speed_index])
+    if ret == BUTTON_0:
         effect_index = (effect_index + 1) % EFFECT_SIZE
-    if ret == 1:
-        effect_index = (effect_index - 1) % EFFECT_SIZE
-    time.sleep(1)
+        speed_index = 0
+    if ret == BUTTON_1:
+        speed_index = (speed_index + 1) % SPEEDS_SIZE
+    time.sleep(0.25)
