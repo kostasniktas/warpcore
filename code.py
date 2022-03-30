@@ -27,6 +27,8 @@ led.direction = digitalio.Direction.OUTPUT
 button = digitalio.DigitalInOut(board.GP17)
 button.switch_to_input(pull=digitalio.Pull.DOWN)
 
+button2 = digitalio.DigitalInOut(board.GP20)
+button2.switch_to_input(pull=digitalio.Pull.DOWN)
 
 DEBUG = True
 
@@ -40,7 +42,10 @@ def do_nothing_gen():
         while True:
             if button.value:
                 pixels[2] = COLOR_OFF
-                return
+                return 0
+            if button2.value:
+                pixels[2] = COLOR_OFF
+                return 1
             if DEBUG:
                 pixels[2] = (0,10,0)
             time.sleep(0.25)
@@ -66,7 +71,9 @@ def warp_loop_gen_enterprise_d(dim, bright):
                 pixels[reset_pixels.pop()] = COLOR_OFF
 
             if button.value:
-                return
+                return 0
+            if button2.value:
+                return 1
 
             if last_bottom > -1:
                 pixels[last_bottom] = dim
@@ -110,7 +117,11 @@ def rainbow_gen(speed):
             if button.value:
                 pixels.fill(COLOR_OFF)
                 pixels.show()
-                return
+                return 0
+            if button2.value:
+                pixels.fill(COLOR_OFF)
+                pixels.show()
+                return 1
             rainbow_effect.animate()
     return lambda: rainbow(speed)
 
@@ -125,7 +136,11 @@ def bouncing_comet_gen(colors, speed):
             if button.value:
                 pixels.fill(COLOR_OFF)
                 pixels.show()
-                return
+                return 0
+            if button2.value:
+                pixels.fill(COLOR_OFF)
+                pixels.show()
+                return 1
             commet.animate()
     return lambda : bouncing_commet(colors, speed)
 
@@ -142,6 +157,9 @@ EFFECT_SIZE = len(EFFECTS)
 
 effect_index = 0
 while True:
-    EFFECTS[effect_index]()
-    effect_index = (effect_index + 1) % EFFECT_SIZE
+    ret = EFFECTS[effect_index]()
+    if ret == 0:
+        effect_index = (effect_index + 1) % EFFECT_SIZE
+    if ret == 1:
+        effect_index = (effect_index - 1) % EFFECT_SIZE
     time.sleep(1)
