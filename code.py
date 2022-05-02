@@ -6,8 +6,8 @@ import neopixel
 from adafruit_led_animation.animation.comet import Comet
 from adafruit_led_animation.animation.rainbowcomet import RainbowComet
 
-NUM_PIXELS = 16
-ENGINE_CORE = 6
+NUM_PIXELS = 24
+ENGINE_CORE = 12
 
 COLOR_OFF = (0,0,0)
 
@@ -56,7 +56,7 @@ def warp_loop_gen_enterprise_d(dim, bright):
     def warp_loop(speed):
         START_TOP = NUM_PIXELS - 1
         START_BOTTOM = -1 * (NUM_PIXELS - ENGINE_CORE - ENGINE_CORE - 1)
-        BELOW_STEPS = abs(START_BOTTOM) + 2
+        BELOW_STEPS = abs(START_BOTTOM) + 3
 
         new_top = START_TOP
         new_bottom = START_BOTTOM
