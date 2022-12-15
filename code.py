@@ -52,7 +52,7 @@ def do_nothing_gen():
 #
 # Simulate Enterprise D engine core pulses
 #
-def warp_loop_gen_enterprise_d(dim, bright):
+def warp_loop_gen_enterprise_d(top_dim, top_bright, bottom_dim, bottom_bright):
     def warp_loop(speed):
         START_TOP = NUM_PIXELS - 1
         START_BOTTOM = -1 * (NUM_PIXELS - ENGINE_CORE - ENGINE_CORE - 1)
@@ -74,16 +74,16 @@ def warp_loop_gen_enterprise_d(dim, bright):
                 return BUTTON_1
 
             if last_bottom > -1:
-                pixels[last_bottom] = dim
+                pixels[last_bottom] = bottom_dim
                 reset_pixels.append(last_bottom)
             if new_bottom < 0:
                 adjust = (BELOW_STEPS - abs(new_bottom)) / BELOW_STEPS
-                pixels[0] = (bright[0] * adjust, bright[1] * adjust, bright[2] * adjust)
+                pixels[0] = (bottom_bright[0] * adjust, bottom_bright[1] * adjust, bottom_bright[2] * adjust)
             if new_bottom > -1:
-                pixels[new_bottom] = bright
+                pixels[new_bottom] = bottom_bright
                 reset_pixels.append(new_bottom)
-            pixels[last_top] = dim
-            pixels[new_top] = bright
+            pixels[last_top] = top_dim
+            pixels[new_top] = top_bright
             reset_pixels.append(last_top)
             reset_pixels.append(new_top)
 
@@ -143,8 +143,8 @@ def bouncing_comet_gen(colors):
     return bouncing_commet
 
 EFFECTS = [
-    warp_loop_gen_enterprise_d((0,0,40), (0,0,255)),
-    warp_loop_gen_enterprise_d((40,0,40), (200,0,200)),
+    warp_loop_gen_enterprise_d((0,0,40), (0,0,255), (0,0,40), (0,0,255)),
+    warp_loop_gen_enterprise_d((40,0,40), (200,0,200), (40,0,40), (200,0,200)),
     bouncing_comet_gen((100,0,100)),
     rainbow_gen(),
 
