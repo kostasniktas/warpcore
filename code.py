@@ -145,6 +145,7 @@ def bouncing_comet_gen(colors):
 EFFECTS = [
     warp_loop_gen_enterprise_d((0,0,40), (0,0,255), (0,0,40), (0,0,255)),
     warp_loop_gen_enterprise_d((40,0,40), (200,0,200), (40,0,40), (200,0,200)),
+    warp_loop_gen_enterprise_d((40,0,0), (255,0,0), (0,40,0), (0,255,0)),
     bouncing_comet_gen((100,0,100)),
     rainbow_gen(),
 
