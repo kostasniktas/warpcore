@@ -139,6 +139,10 @@ def get_all_effect_entries(pixels: NeoPixel, core: int) -> Tuple[dict[str,dict[s
         ("warpcore_purple", OrderedDict(
             effect_warp_loop_entd_gen_speeds(pixels, 12, [0.5, 0.25, 0.05],
                 (40,0,40), (200,0,200), (40,0,40), (200,0,200))
+        )),
+        ("warpcore_xmas", OrderedDict(
+            effect_warp_loop_entd_gen_speeds(pixels, 12, [0.5,0.25,0.05],
+                (40,0,0), (255,0,0), (0,40,0), (0,255,0))
         ))
     ])
 
