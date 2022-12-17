@@ -48,9 +48,9 @@ def effect_rainbow_gen(pixels: NeoPixel, speed):
         return e
     return rainbow
 
-def effect_bouncing_comet_gen(pixels: NeoPixel, speed):
+def effect_bouncing_comet_gen(pixels: NeoPixel, speed, color: Tuple):
     def bouncing_comet():
-        e = Comet(pixels, speed, (255,255,0), bounce=True)
+        e = Comet(pixels, speed, color, bounce=True)
         return e
     return bouncing_comet
 
@@ -128,9 +128,9 @@ def get_all_effect_entries(pixels: NeoPixel, core: int) -> Tuple[dict[str,dict[s
             ("0.5", EffectEntry(effect_rainbow_gen(pixels,0.5))),
             ("0.1", EffectEntry(effect_rainbow_gen(pixels,0.1)))
         ])),
-        ("comet", OrderedDict([
-            ("0.25", EffectEntry(effect_bouncing_comet_gen(pixels,0.25))),
-            ("0.1", EffectEntry(effect_bouncing_comet_gen(pixels,0.1)))
+        ("cometbounce_purple", OrderedDict([
+            ("0.25", EffectEntry(effect_bouncing_comet_gen(pixels,0.25, (100,0,100)))),
+            ("0.1", EffectEntry(effect_bouncing_comet_gen(pixels,0.1, (100,0,100))))
         ])),
         ("warpcore_blue", OrderedDict(
             effect_warp_loop_entd_gen_speeds(pixels, 12, [0.5, 0.25, 0.05],

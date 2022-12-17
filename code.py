@@ -38,6 +38,7 @@ def get_by_name(effect_name: str) -> effects.EffectEntry:
         effect_entry = EFFECTS[name][speed]
         return effect_entry
     except:
+        print("Didn't find effect %s" % name)
         return effects.NOT_FOUND_EFFECT
 
 def get_by_index(effect: int, speed: int) -> effects.EffectEntry:
@@ -49,7 +50,7 @@ def get_by_index(effect: int, speed: int) -> effects.EffectEntry:
 
 
 # hard coding initial
-current_entry = get_by_name("comet_0.1")
+current_entry = get_by_name("cometbounce_purple_0.1")
 current_effect_index = current_entry.index_effect
 current_speed_index = current_entry.index_speed
 current_effect = current_entry.effect()
