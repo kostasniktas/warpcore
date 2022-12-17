@@ -5,7 +5,7 @@ import time
 from collections import OrderedDict
 
 try:
-    from typing import Callable
+    from typing import Any
 except ImportError:
     pass #meh
 
@@ -64,49 +64,59 @@ def effect_bouncing_comet_gen(speed):
         return e
     return bouncing_comet
 
-class EffectEntry():
-    def __init__(self, name, speed, effect, index_effect, index_speed):
-        self.name = name
-        self.speed = speed
+class EffectEntry(object):
+    def __init__ (self, effect):
         self.effect = effect
-        self.index_effect = index_effect
-        self.index_speed = index_speed
+        self.name: str = ""
+        self.speed: str = ""
+        self.index_effect: int = 0
+        self.index_speed: int = 0
+
     def full_name(self):
         return "%s_%s" % (self.name, self.speed)
     def __repr__(self) -> str:
         return self.full_name()
 
-EFFECTS: dict[str, dict[str, Callable]] = OrderedDict([
+# Allows for finding things by keys
+EFFECTS: dict[str, dict[str, Any]] = OrderedDict([
     ("nothing", OrderedDict([
-        ("", effect_nothing_gen())
+        ("", EffectEntry(effect_nothing_gen()))
     ])),
     ("rainbow", OrderedDict([
-        ("0.25", effect_rainbow_gen(0.25)),
-        ("0.5", effect_rainbow_gen(0.5)),
-        ("0.1", effect_rainbow_gen(0.1))
+        ("0.25", EffectEntry(effect_rainbow_gen(0.25))),
+        ("0.5", EffectEntry(effect_rainbow_gen(0.5))),
+        ("0.1", EffectEntry(effect_rainbow_gen(0.1)))
     ])),
     ("comet", OrderedDict([
-        ("0.25", effect_bouncing_comet_gen(0.25)),
-        ("0.1", effect_bouncing_comet_gen(0.1))
+        ("0.25", EffectEntry(effect_bouncing_comet_gen(0.25))),
+        ("0.1", EffectEntry(effect_bouncing_comet_gen(0.1)))
     ]))
 ])
+
+# Allows to iterate
 EFFECTS_ITERATIONS = []
 i = 0
 for effect in EFFECTS.keys():
     j = 0
     all_speeds = []
     for speed in EFFECTS[effect].keys():
-        effect_entry = EffectEntry(effect, speed, EFFECTS[effect][speed], i, j)
+        effect_entry: EffectEntry = EFFECTS[effect][speed]
+        effect_entry.index_effect = i
+        effect_entry.index_speed = j
+        effect_entry.name = effect
+        effect_entry.speed = speed
         all_speeds.append(effect_entry)
         j+=1
     i+=1
     EFFECTS_ITERATIONS.append(all_speeds)
 EFFECTS_SIZE = len(EFFECTS_ITERATIONS)
-print(EFFECTS_ITERATIONS)
+# print(EFFECTS_ITERATIONS)
+# print(EFFECTS)
 
 # hard coding initial
-current_effect_index = 1
-current_speed_index = 0
+current_entry = EFFECTS["comet"]["0.25"]
+current_effect_index = current_entry.index_effect
+current_speed_index = current_entry.index_speed
 current_effect = EFFECTS_ITERATIONS[current_effect_index][current_speed_index].effect()
 
 print("HI")
@@ -114,7 +124,6 @@ print("HI")
 changed = False
 
 while True:
-    # print("WOW")
     current_effect.animate()
     if button_0.value:
         current_effect_index = (current_effect_index + 1) % EFFECTS_SIZE
