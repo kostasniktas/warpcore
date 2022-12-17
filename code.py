@@ -2,7 +2,8 @@
 print('dude')
 
 import time
-from collections import OrderedDict
+import wifi
+from collections import OrderedDict, namedtuple
 
 try:
     from typing import Any
@@ -77,6 +78,9 @@ class EffectEntry(object):
     def __repr__(self) -> str:
         return self.full_name()
 
+EffectCoordinate = namedtuple("EffectCoordinate", ("effect", "index_effect", "index_speed", "effect_keys"))
+NOT_FOUND_EFFECT = EffectEntry(None)
+
 # Allows for finding things by keys
 EFFECTS: dict[str, dict[str, Any]] = OrderedDict([
     ("nothing", OrderedDict([
@@ -113,11 +117,27 @@ EFFECTS_SIZE = len(EFFECTS_ITERATIONS)
 # print(EFFECTS_ITERATIONS)
 # print(EFFECTS)
 
+def get_by_name(effect_name: str) -> EffectEntry:
+    name, speed = effect_name.rsplit("_", 1)
+    try:
+        effect_entry = EFFECTS[name][speed]
+        return effect_entry
+    except:
+        return NOT_FOUND_EFFECT
+
+def get_by_index(effect: int, speed: int) -> EffectEntry:
+    try:
+        effect_entry = EFFECTS_ITERATIONS[effect][speed]
+        return effect_entry
+    except:
+        return NOT_FOUND_EFFECT
+
+
 # hard coding initial
-current_entry = EFFECTS["comet"]["0.25"]
+current_entry = get_by_name("comet_0.1")
 current_effect_index = current_entry.index_effect
 current_speed_index = current_entry.index_speed
-current_effect = EFFECTS_ITERATIONS[current_effect_index][current_speed_index].effect()
+current_effect = current_entry.effect()
 
 print("HI")
 
@@ -135,7 +155,7 @@ while True:
         print("Changing speed to " + str(current_speed_index))
         changed = True
     if changed:
-        effect_entry = EFFECTS_ITERATIONS[current_effect_index][current_speed_index]
+        effect_entry = get_by_index(current_effect_index,current_speed_index)
         pixels.fill(COLOR_OFF)
         pixels.show()
         changed = False
