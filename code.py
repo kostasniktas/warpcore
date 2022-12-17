@@ -27,7 +27,7 @@ button_1 = digitalio.DigitalInOut(board.GP20)
 button_1.switch_to_input(pull=digitalio.Pull.DOWN)
 BUTTON_1 = 1
 
-EFFECTS, EFFECTS_ITERATIONS = effects.get_all_effect_entries(pixels)
+EFFECTS, EFFECTS_ITERATIONS = effects.get_all_effect_entries(pixels, ENGINE_CORE)
 EFFECTS_SIZE = len(EFFECTS_ITERATIONS)
 
 print("All the supported effects: " + str([item for sublist in EFFECTS_ITERATIONS for item in sublist]))
@@ -76,4 +76,4 @@ while True:
         changed = False
         print("Changing to " + effect_entry.full_name())
         current_effect = effect_entry.effect()
-    time.sleep(0.1)
+    time.sleep(0.05)

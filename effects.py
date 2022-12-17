@@ -1,3 +1,4 @@
+import time
 from collections import OrderedDict, namedtuple
 
 try:
@@ -9,6 +10,23 @@ from adafruit_led_animation.animation.rainbowcomet import RainbowComet
 from neopixel import NeoPixel
 
 DEBUG = True
+COLOR_OFF = (0,0,0)
+
+
+class EffectEntry(object):
+    def __init__ (self, effect):
+        self.effect = effect
+        self.name: str = ""
+        self.speed: str = ""
+        self.index_effect: int = 0
+        self.index_speed: int = 0
+
+    def full_name(self):
+        return "%s_%s" % (self.name, self.speed)
+    def __repr__(self) -> str:
+        return self.full_name()
+NOT_FOUND_EFFECT = EffectEntry(None)
+
 
 class EffectDoNothing():
     def __init__(self, pixels: NeoPixel):
@@ -36,22 +54,69 @@ def effect_bouncing_comet_gen(pixels: NeoPixel, speed):
         return e
     return bouncing_comet
 
-class EffectEntry(object):
-    def __init__ (self, effect):
-        self.effect = effect
-        self.name: str = ""
-        self.speed: str = ""
-        self.index_effect: int = 0
-        self.index_speed: int = 0
+class EffectWarpEnterpriseD():
+    def __init__(self, pixels: NeoPixel, core:int, speed, top_dim, top_bright, bottom_dim, bottom_bright):
+        # Parameters
+        self.pixels = pixels
+        self.core = core
+        self.speed = speed
+        self.top_dim = top_dim
+        self.top_bright = top_bright
+        self.bottom_dim = bottom_dim
+        self.bottom_bright = bottom_bright
 
-    def full_name(self):
-        return "%s_%s" % (self.name, self.speed)
-    def __repr__(self) -> str:
-        return self.full_name()
+        # Starting conditions
+        self.start_top = self.pixels.n - 1
+        self.start_bottom = -1 * (self.pixels.n - self.core - self.core - 1)
+        self.below_steps = abs(self.start_bottom) + 3
 
-NOT_FOUND_EFFECT = EffectEntry(None)
+        # Iteration
+        self.new_top = self.start_top
+        self.new_bottom = self.start_bottom
+        self.last_top = self.new_top
+        self.last_bottom = self.new_bottom
+        self.reset_pixels = []
+    def animate(self):
+        while self.reset_pixels:
+            self.pixels[self.reset_pixels.pop()] = COLOR_OFF
 
-def get_all_effect_entries(pixels: NeoPixel) -> Tuple[dict[str,dict[str,EffectEntry]],list[list[EffectEntry]]]:
+        if self.last_bottom > -1:
+            self.pixels[self.last_bottom] = self.bottom_dim
+            self.reset_pixels.append(self.last_bottom)
+        if self.new_bottom < 0:
+            adjust = (self.below_steps - abs(self.new_bottom)) / self.below_steps
+            self.pixels[0] = tuple([_ * adjust for _ in self.bottom_bright])
+        if self.new_bottom > -1:
+            self.pixels[self.new_bottom] = self.bottom_bright
+            self.reset_pixels.append(self.new_bottom)
+        self.pixels[self.last_top] = self.top_dim
+        self.pixels[self.new_top] = self.top_bright
+        self.reset_pixels.append(self.last_top)
+        self.reset_pixels.append(self.new_top)
+        self.pixels.show()
+
+        self.last_top = self.new_top
+        self.last_bottom = self.new_bottom
+        self.new_top -= 1
+        self.new_bottom += 1
+
+        if self.new_top < self.core:
+            self.new_top = self.start_top
+        if self.new_bottom > self.core:
+            self.new_bottom = self.start_bottom
+        time.sleep(self.speed)
+def effect_warp_loop_entd_gen(pixels: NeoPixel, core: int, speed, top_dim, top_bright, bottom_dim, bottom_bright):
+    def warp_loop():
+        e = EffectWarpEnterpriseD(pixels, core, speed, top_dim, top_bright, bottom_dim, bottom_bright)
+        return e
+    return warp_loop
+def effect_warp_loop_entd_gen_speeds(pixels: NeoPixel, core:int, speeds: list, top_dim, top_bright, bottom_dim, bottom_bright):
+    items = []
+    for speed in speeds:
+        items.append((str(speed), EffectEntry(effect_warp_loop_entd_gen(pixels, core, speed, top_dim, top_bright, bottom_dim, bottom_bright))))
+    return items
+
+def get_all_effect_entries(pixels: NeoPixel, core: int) -> Tuple[dict[str,dict[str,EffectEntry]],list[list[EffectEntry]]]:
     print("Build effects from a module")
     # Allows for finding things by keys
     EFFECTS: dict[str, dict[str, Any]] = OrderedDict([
@@ -66,7 +131,15 @@ def get_all_effect_entries(pixels: NeoPixel) -> Tuple[dict[str,dict[str,EffectEn
         ("comet", OrderedDict([
             ("0.25", EffectEntry(effect_bouncing_comet_gen(pixels,0.25))),
             ("0.1", EffectEntry(effect_bouncing_comet_gen(pixels,0.1)))
-        ]))
+        ])),
+        ("warpcore_blue", OrderedDict(
+            effect_warp_loop_entd_gen_speeds(pixels, 12, [0.5, 0.25, 0.05],
+                (0,0,40), (0,0,255), (0,0,40), (0,0,255))
+        )),
+        ("warpcore_purple", OrderedDict(
+            effect_warp_loop_entd_gen_speeds(pixels, 12, [0.5, 0.25, 0.05],
+                (40,0,40), (200,0,200), (40,0,40), (200,0,200))
+        ))
     ])
 
     # Allows to iterate
