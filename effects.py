@@ -9,7 +9,7 @@ from adafruit_led_animation.animation.comet import Comet
 from adafruit_led_animation.animation.rainbowcomet import RainbowComet
 from neopixel import NeoPixel
 
-DEBUG = True
+DEBUG = False
 COLOR_OFF = (0,0,0)
 
 
@@ -22,6 +22,8 @@ class EffectEntry(object):
         self.index_speed: int = 0
 
     def full_name(self):
+        if not self.speed:
+            return self.name
         return "%s_%s" % (self.name, self.speed)
     def __repr__(self) -> str:
         return self.full_name()
@@ -67,6 +69,7 @@ class EffectWarpEnterpriseD():
 
         # Starting conditions
         self.start_top = self.pixels.n - 1
+        # TODO: Something going on here with pixel 0 being left out
         self.start_bottom = -1 * (self.pixels.n - self.core - self.core - 1)
         self.below_steps = abs(self.start_bottom) + 3
 
