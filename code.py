@@ -11,6 +11,14 @@ import wifi
 
 import effects
 
+
+## TODO LIST
+# - dynamic adding of effects via .env
+# - indication lights/colors for wifi prob, mqtt prob, etc.
+# - offline mode
+# - home assistant autodiscovery? (make it an option in .env)
+#
+
 NUM_PIXELS = 24
 ENGINE_CORE = 12
 
@@ -68,8 +76,8 @@ class StateClass(object):
 
 the_state = StateClass()
 
-topic_set = "testing/warpcore/set"
-topic_state = "testing/warpcore"
+topic_set = os.getenv("mqtt_set", "testing/warpcore/set")
+topic_state = os.getenv("mqtt_state", "testing/warpcore")
 
 def connect(mqtt_client, userdata, flags, rc):
     print("Connected to MQTT")
