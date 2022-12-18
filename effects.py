@@ -9,7 +9,7 @@ from adafruit_led_animation.animation.comet import Comet
 from adafruit_led_animation.animation.rainbowcomet import RainbowComet
 from neopixel import NeoPixel
 
-DEBUG = True
+DEBUG = False
 COLOR_OFF = (0,0,0)
 
 

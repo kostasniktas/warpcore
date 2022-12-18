@@ -3,6 +3,7 @@ import time
 import board
 import digitalio
 import neopixel
+import wifi
 
 import effects
 
@@ -48,9 +49,24 @@ def get_by_index(effect: int, speed: int) -> effects.EffectEntry:
     except:
         return effects.NOT_FOUND_EFFECT
 
+from secrets import secrets
+
+if "name" in secrets:
+    wifi.radio.hostname = secrets["name"]
+print("Connecting to %s" % secrets["wifi"])
+wifi.radio.connect(secrets["wifi"], secrets["wifi_pw"])
+print("Connected to %s with address %s" % (secrets["wifi"], wifi.radio.ipv4_address))
+# TODO: Add logic to show errors with connections.
+
+
+pixels.fill((100,100,0))
+pixels.show()
+time.sleep(1)
+pixels.fill((0,0,0))
+pixels.show()
 
 # hard coding initial
-current_entry = get_by_name("cometbounce_purple_0.1")
+current_entry = get_by_name("nothing_")
 current_effect_index = current_entry.index_effect
 current_speed_index = current_entry.index_speed
 current_effect = current_entry.effect()
