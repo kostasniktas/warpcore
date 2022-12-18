@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
@@ -98,7 +99,7 @@ def get_by_name(effect_name: str) -> effects.EffectEntry:
         effect_entry = EFFECTS[name][speed]
         return effect_entry
     except:
-        print("Didn't find effect %s" % name)
+        print("Didn't find effect %s" % effect_name)
         return effects.NOT_FOUND_EFFECT
 
 def get_by_index(effect: int, speed: int) -> effects.EffectEntry:
@@ -137,14 +138,12 @@ def send_state(client):
     print("Sending state %s" % state)
     client.publish(topic_state, json.dumps(state))
 
-from secrets import secrets
-
-if "name" in secrets:
-    wifi.radio.hostname = secrets["name"]
-print("Connecting to %s" % secrets["wifi"])
-wifi.radio.connect(secrets["wifi"], secrets["wifi_pw"])
-print("Connected to %s with address %s" % (secrets["wifi"], wifi.radio.ipv4_address))
-# TODO: Add logic to show errors with connections.
+if os.getenv("hostname"):
+    wifi.radio.hostname = os.getenv("hostname")
+print("Connecting to %s" % os.getenv("wifi_ssid"))
+wifi.radio.connect(os.getenv("wifi_ssid"), os.getenv("wifi_password"))
+print("Connected to %s with address %s" % (os.getenv("wifi_ssid"), wifi.radio.ipv4_address))
+# TODO: Add logic to show errors with connections *and* make it all optional
 
 
 pixels.fill((100,100,0))
@@ -160,10 +159,10 @@ print("HI")
 
 pool = socketpool.SocketPool(wifi.radio)
 mqtt_client = MQTT.MQTT(
-    broker=secrets["mqtt"],
+    broker=os.getenv("mqtt_host"),
     port=1883,
-    username=secrets["mqtt_user"],
-    password=secrets["mqtt_pw"],
+    username=os.getenv("mqtt_user"),
+    password=os.getenv("mqtt_password"),
     socket_pool=pool
 )
 
