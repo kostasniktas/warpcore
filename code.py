@@ -40,22 +40,29 @@ STATE_ON="ON"
 STATE_OFF="OFF"
 class StateClass(object):
     state_on: bool = False
-    effect: effects.EffectEntry = effects.NOT_FOUND_EFFECT
+    entry: effects.EffectEntry = effects.NOT_FOUND_EFFECT
+    effect = None # fix typing
+    effect_index: int = 0
+    speed_index: int = 0
+
 
     def as_mqtt_state(self):
         state = {}
         state["state"] = STATE_ON if self.state_on else STATE_OFF
-        if self.effect and self.effect != effects.NOT_FOUND_EFFECT:
-            state["effect"] = self.effect.full_name
+        if self.entry and self.entry != effects.NOT_FOUND_EFFECT:
+            state["effect"] = self.entry.full_name()
         else:
             state["effect"] = None
         return state
-    def set_effect(self, effect: effects.EffectEntry):
-        if effect == effects.NOT_FOUND_EFFECT or effect.full_name == "nothing":
+    def set_entry(self, entry: effects.EffectEntry):
+        if entry == effects.NOT_FOUND_EFFECT or entry.full_name() == "nothing":
             self.state_on = False
         else:
             self.state_on = True
-        self.effect = effect
+        self.entry = entry
+        self.effect_index = self.entry.index_effect
+        self.speed_index = self.entry.index_speed
+        self.effect = self.entry.effect()
 
 the_state = StateClass()
 
@@ -116,12 +123,12 @@ def process_json(payload):
     if "state" in payload:
         if payload["state"] == STATE_ON:
             if "effect" in payload:
-                the_state.set_effect(get_by_name(payload["effect"]))
+                the_state.set_entry(get_by_name(payload["effect"]))
             else:
-                the_state.set_effect(get_by_index(1,0))
+                the_state.set_entry(get_by_index(1,0))
         else:
-            the_state.set_effect(get_by_name("nothing"))
-    pass # gc.collect()
+            the_state.set_entry(get_by_name("nothing"))
+    pass # TODO: gc.collect() do we need this on RP2040?
     return True
 
 def send_state(client):
@@ -146,10 +153,7 @@ pixels.fill((0,0,0))
 pixels.show()
 
 # hard coding initial
-current_entry = get_by_name("nothing")
-current_effect_index = current_entry.index_effect
-current_speed_index = current_entry.index_speed
-current_effect = current_entry.effect()
+the_state.set_entry(get_by_name("nothing"))
 
 print("HI")
 
@@ -174,24 +178,27 @@ print("Attempting to connect to %s" % mqtt_client.broker)
 mqtt_client.connect()
 
 changed = False
-
-
+next_speed = 0
+next_effect = 0
+print("before loop")
 while True:
-    current_effect.animate()
+    the_state.effect.animate()
     if button_0.value:
-        current_effect_index = (current_effect_index + 1) % EFFECTS_SIZE
-        current_speed_index = 0
+        next_effect = (the_state.effect_index + 1) % EFFECTS_SIZE
+        next_speed = 0
         print("Changing effect")
         changed = True
     if button_1.value:
-        current_speed_index = (current_speed_index + 1) % len(EFFECTS_ITERATIONS[current_effect_index])
-        print("Changing speed to " + str(current_speed_index))
+        next_speed = (the_state.speed_index + 1) % len(EFFECTS_ITERATIONS[the_state.effect_index])
+        next_effect = the_state.effect_index
+        print("Changing speed to " + str(next_speed))
         changed = True
     if changed:
-        effect_entry = get_by_index(current_effect_index,current_speed_index)
+        effect_entry = get_by_index(next_effect, next_speed)
         pixels.fill(COLOR_OFF)
         pixels.show()
         changed = False
-        print("Changing to " + effect_entry.full_name())
-        current_effect = effect_entry.effect()
+        print("Changing to {0} {1} {2}".format(next_effect, next_speed, effect_entry.full_name()))
+        the_state.set_entry(effect_entry)
+        send_state(mqtt_client)
     time.sleep(0.05)
