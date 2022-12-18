@@ -17,7 +17,8 @@ import effects
 # - indication lights/colors for wifi prob, mqtt prob, etc.
 # - offline mode
 # - home assistant autodiscovery? (make it an option in .env)
-#
+# - last on effect?
+# - support normal RGB?
 
 NUM_PIXELS = 24
 ENGINE_CORE = 12
@@ -70,6 +71,8 @@ class StateClass(object):
         else:
             self.state_on = True
             self.entry = entry
+        pixels.fill(COLOR_OFF)
+        pixels.show()
         self.effect_index = self.entry.index_effect
         self.speed_index = self.entry.index_speed
         self.effect = self.entry.effect()
@@ -135,7 +138,7 @@ def process_json(payload):
             if "effect" in payload:
                 the_state.set_entry(get_by_name(payload["effect"]))
             else:
-                the_state.set_entry(get_by_name("nothing"))
+                the_state.set_entry(get_by_index(1,0))
         else:
             the_state.set_entry(get_by_name("nothing"))
     pass # TODO: gc.collect() do we need this on RP2040?
