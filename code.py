@@ -57,9 +57,10 @@ class StateClass(object):
     def set_entry(self, entry: effects.EffectEntry):
         if entry == effects.NOT_FOUND_EFFECT or entry.full_name() == "nothing":
             self.state_on = False
+            self.entry = get_by_name("nothing")
         else:
             self.state_on = True
-        self.entry = entry
+            self.entry = entry
         self.effect_index = self.entry.index_effect
         self.speed_index = self.entry.index_speed
         self.effect = self.entry.effect()
@@ -125,7 +126,7 @@ def process_json(payload):
             if "effect" in payload:
                 the_state.set_entry(get_by_name(payload["effect"]))
             else:
-                the_state.set_entry(get_by_index(1,0))
+                the_state.set_entry(get_by_name("nothing"))
         else:
             the_state.set_entry(get_by_name("nothing"))
     pass # TODO: gc.collect() do we need this on RP2040?
@@ -182,6 +183,7 @@ next_speed = 0
 next_effect = 0
 print("before loop")
 while True:
+    mqtt_client.loop(timeout=0.1)
     the_state.effect.animate()
     if button_0.value:
         next_effect = (the_state.effect_index + 1) % EFFECTS_SIZE

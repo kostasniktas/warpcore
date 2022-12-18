@@ -69,6 +69,7 @@ class EffectWarpEnterpriseD():
 
         # Starting conditions
         self.start_top = self.pixels.n - 1
+        # TODO: Something going on here with pixel 0 being left out
         self.start_bottom = -1 * (self.pixels.n - self.core - self.core - 1)
         self.below_steps = abs(self.start_bottom) + 3
 
