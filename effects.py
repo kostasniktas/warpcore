@@ -22,6 +22,8 @@ class EffectEntry(object):
         self.index_speed: int = 0
 
     def full_name(self):
+        if not self.speed:
+            return self.name
         return "%s_%s" % (self.name, self.speed)
     def __repr__(self) -> str:
         return self.full_name()
